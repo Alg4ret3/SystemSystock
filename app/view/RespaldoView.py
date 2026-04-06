@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 app_data_dir = Path(os.getenv("APPDATA") or os.path.expanduser("~/.local/share")) / "Systock"
-DATABASE_PATH = app_data_dir / "systock.db"
+DATABASE_PATH = app_data_dir / "ladynails-cali.db"
 
 class Respaldo_View(QWidget, Ui_Respaldo):
     def __init__(self, parent=None):
