@@ -545,12 +545,12 @@ class VentasCredito_View(QWidget, Ui_VentasCredito):
             hDC.TextOut(x, y, "--------------------------------")
             y += line_height
 
-            # Totales Crédito
-            hDC.TextOut(x, y, f"DEUDA TOTAL:  {subtotal_formateado.rjust(16)}")
+            # Totales Crédito alineados como Factura A/B
+            hDC.TextOut(x, y, f"SALDO PEND: {subtotal_formateado.rjust(18)}")
             y += line_height
-            hDC.TextOut(x, y, f"DOMICILIO:    {delivery_fee_formateado.rjust(16)}")
+            hDC.TextOut(x, y, f"DOMICILIO:  {delivery_fee_formateado.rjust(18)}")
             y += line_height
-            hDC.TextOut(x, y, f"SALDO PEND:   {subtotal_formateado.rjust(16)}")
+            hDC.TextOut(x, y, f"TOTAL:      {total_formateado.rjust(18)}")
             y += line_height
             y += 5
             hDC.TextOut(x, y, f"F. LIMITE: {limite_pago}")
