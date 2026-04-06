@@ -317,7 +317,7 @@ class VentasA_View(QWidget, Ui_VentasA):
             # Aproximadamente 32 caracteres por línea
             max_lines_per_page = 40  
             current_line = 0  
-            empresa_nombre = "INSUMOS UÑAS"
+            empresa_nombre = "NailShop"
             empresa_telefono = "+57 322-930-5738"
 
             # Obtener la fecha actual
@@ -470,7 +470,7 @@ class VentasA_View(QWidget, Ui_VentasA):
             y += 15
             hDC.TextOut(x, y, "--------------------------------")
             y += line_height
-            mensaje_gracias = "¡Gracias por su compra!"
+            mensaje_gracias = "¡Gracias por preferirnos!"
             text_size = hDC.GetTextExtent(mensaje_gracias)
             hDC.TextOut(center_x - (text_size[0] // 2), y, mensaje_gracias)
             y += line_height
