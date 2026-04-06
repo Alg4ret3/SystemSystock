@@ -313,171 +313,178 @@ class VentasB_View(QWidget, Ui_VentasB):
                 id_factura = self.guardar_factura(db, client_id, payment_method, produc_datos, monto_pago, descuento, self.usuario_actual_id, domicilio)
                 self.invoice_number = f"0000{id_factura}"
                 mensaje = "Factura generada exitosamente."
-            # Generar el contenido del ticket
-            # Configuración inicial
-            max_lines_per_page = 30  # Límite de líneas por página
-            current_line = 0  # Contador de líneas
-            empresa_nombre = "LadyNailShop"
-            empresa_direccion = "Pasto, Colombia"
-            empresa_telefono = "+57 316-144-44-74"
+            # Configuración para impresora de 58 mm (POS-58)
+            max_lines_per_page = 40  
+            current_line = 0  
+            empresa_nombre = "INSUMOS UÑAS"
+            empresa_telefono = "+57 322-930-5738"
 
             # Obtener la fecha actual
             fecha_actual = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
             # Formatear valores monetarios
-            subtotal_formateado = f"${subtotal:,.2f}"
-            total_formateado = f"${total:,.2f}"
+            subtotal_formateado = f"${subtotal:,.0f}".replace(",", ".")
+            total_formateado = f"${total:,.0f}".replace(",", ".")
             
-            if isinstance(pago, str) and "/" in pago:  # Si el pago es una cadena con "/"
-                pagos = [float(p.replace(".", "").replace(",", ".")) for p in pago.split("/")]
-            else:  # Si el pago es un solo número
-                pagos = [float(pago.replace(".", "").replace(",", "."))]
-            # Formatear según el número de valores
-            if len(pagos) == 1:
-                pago_formateado = f" ${pagos[0]:,.2f}"
-            elif len(pagos) == 2:
-                pago_formateado = f"Efectivo: ${pagos[0]:,.2f}\nTransferencia: ${pagos[1]:,.2f}"
-           
-            descuento_formateado = f"${descuento:,.2f}"
-
-            # Formatear el costo de envío
-            delivery_fee = float(delivery_fee)
-            if delivery_fee.is_integer():
-                delivery_fee_formateado = f"${int(delivery_fee):,.0f}"
+            pago_p = str(pago).strip()
+            if "/" in pago_p:
+                total_p = pago_p.split("/") 
+                efectivo = float(total_p[0]) if total_p[0] else 0
+                tranferencia = float(total_p[1]) if total_p[1] else 0
+                pago_formateado = f"Ef: ${efectivo:,.0f}\nTr: ${tranferencia:,.0f}".replace(",", ".")
             else:
-                delivery_fee_formateado = f"${delivery_fee:,.2f}"
+                pago_f = float(pago_p.replace(".", "").replace(",", "."))
+                pago_formateado = f"${pago_f:,.0f}".replace(",", ".")
+           
+            descuento_formateado = f"${descuento:,.0f}".replace(",", ".")
 
-            # Limitar la dirección del cliente a 25 caracteres por línea
+            delivery_fee_formateado = f"${float(delivery_fee):,.0f}".replace(",", ".")
+
+            # Ajustar dirección para 58mm
             direccion = client_address
-            direccion_linea1 = direccion[:35]
-            direccion_linea2 = direccion[35:] if len(direccion) > 35 else ""
+            direccion_linea1 = direccion[:25]
+            direccion_linea2 = direccion[25:50] if len(direccion) > 25 else ""
+            direccion_linea3 = direccion[50:75] if len(direccion) > 50 else ""
 
             # Obtener la impresora predeterminada
             impresora = win32print.GetDefaultPrinter()
             hDC = win32ui.CreateDC()
             hDC.CreatePrinterDC(impresora)
 
-            # Crear un documento de impresión
-            hDC.StartDoc("Ticket de Venta")
+            hDC.StartDoc("Cotización")
             hDC.StartPage()
-            
-          
 
-            # Fuente grande SOLO para encabezado
+            # Fuentes
             font_encabezado = win32ui.CreateFont({
                 "name": "Lucida Console",
-                "height": 28,  # Más grande
+                "height": 32,  
                 "weight": win32con.FW_BOLD
             })
 
-            
-            # Configurar la fuente
             font_size = 18
-            line_height = font_size + 10
-            font = win32ui.CreateFont({
+            line_height = font_size + 8
+            font_normal = win32ui.CreateFont({
                 "name": "Lucida Console",
                 "height": font_size,
                 "weight": win32con.FW_BOLD
             })
-            #hDC.SelectObject(font)
-            # Seleccionar la fuente grande
-            hDC.SelectObject(font_encabezado)
 
-            # Obtener el tamaño del papel para centrar el texto
             printer_width = hDC.GetDeviceCaps(win32con.HORZRES)
-            center_x = printer_width // 2  # Punto central
-            # Mostrar información útil
-            print(f"🖨️ Impresora predeterminada: {impresora}")
-            print(f"📄 Tamaño del papel: {printer_width}  píxeles")
-            # Ajuste de coordenadas iniciales para el contenido del ticket
-            x, y = 2, 2 + 5 * line_height  # Espacio después de la información de la empresa, la línea y la fecha
+            center_x = printer_width // 2  
 
-            # Imprimir los datos de la empresa
-            # Calcular y centrar texto con precisión
-            for i, linea in enumerate([empresa_nombre, empresa_direccion, empresa_telefono, fecha_actual]):
-                text_size = hDC.GetTextExtent(linea)  # (ancho, alto)
-                text_width = text_size[0]
-                hDC.TextOut(center_x - (text_width // 2), 50 + (i * line_height), linea)
-            y += line_height
-            hDC.SelectObject(font)
-
-            # Línea separadora
-            hDC.TextOut(x, y, "-----------------------------------------------------------------------------------------------------------------")  # Imprime la línea separadora
+            x, y = 2, 10
             
-            # Imprimir la información del cliente
+            # Encabezado centrado
+            hDC.SelectObject(font_encabezado)
+            text_size = hDC.GetTextExtent(empresa_nombre)
+            hDC.TextOut(center_x - (text_size[0] // 2), y, empresa_nombre)
+            y += 40
+
+            hDC.SelectObject(font_normal)
+            for linea in [empresa_telefono, fecha_actual]:
+                text_size = hDC.GetTextExtent(linea)
+                hDC.TextOut(center_x - (text_size[0] // 2), y, linea)
+                y += line_height
+            
+            y += 10
+            hDC.TextOut(x, y, "--------------------------------")
             y += line_height
-            hDC.TextOut(x, y, f"COT No. {self.invoice_number}")# Aquí se agrega el número de factura
+            
+            # Info cliente
+            hDC.TextOut(x, y, f"No. COT: {self.invoice_number}")
             y += line_height
-            hDC.TextOut(x, y, f"Cliente: {client_name}")
+            hDC.TextOut(x, y, f"Cliente: {client_name[:22]}")
             y += line_height
-            hDC.TextOut(x, y, f"Cédula: {client_id}")
+            hDC.TextOut(x, y, f"CC: {client_id}")
             y += line_height
-            hDC.TextOut(x, y, f"Teléfono: {client_phone}")
+            hDC.TextOut(x, y, f"Tel: {client_phone}")
             y += line_height
-            hDC.TextOut(x, y, f"Dirección: {direccion_linea1}")
+            hDC.TextOut(x, y, f"Dir: {direccion_linea1}")
             y += line_height
-            if direccion_linea2:  # Si hay una segunda línea de dirección, imprimirla
-                hDC.TextOut(x, y, direccion_linea2)
+            if direccion_linea2:
+                hDC.TextOut(x + 40, y, direccion_linea2)
+                y += line_height
+            if direccion_linea3:
+                hDC.TextOut(x + 40, y, direccion_linea3)
                 y += line_height
 
-            # 🔹 Imprimir "Productos:" y la línea separadora
-            hDC.TextOut(x, y, "-----------------------------------------------------------------------------------------------------------------")  # Imprime la línea separadora
-            y += line_height  # Mueve la posición para empezar a imprimir los productos
-            
-            # Encabezado de tabla productos
-            header = "{:<18} {:>6} {:>10} {:>10}".format("Producto", "Cant.", "P.Mayor", "Total")
-            hDC.TextOut(x, y, header)
+            # Encabezado (detalles en 2 líneas)
             y += line_height
-
-           # Productos
-                        # Productos
+            hDC.TextOut(x, y, "--------------------------------")
+            y += line_height  
+            
+            # Productos
             for item in items:
-                # Limitar y alinear nombre del producto
-                nombre_producto = item[0].strip().replace('\n', ' ')[:18].ljust(18)
+                nombre_p = item[0].strip().replace('\n', ' ')[:25]
+                cant_p = str(item[1])
+                unit_p = f"{item[2]:,.0f}".replace(",", ".")
+                tot_p = f"{item[3]:,.0f}".replace(",", ".")
 
-                cantidad = str(item[1])
-                precio_unitario = f"{item[2]:,.0f}".replace(",", ".")
-                total_producto = f"{item[3]:,.0f}".replace(",", ".")
-
-                # Formatear la línea con alineación fija
-                linea = "{:<18} {:>6} {:>10} {:>10}".format(
-                    nombre_producto, cantidad, precio_unitario, total_producto
-                )
-                hDC.TextOut(x, y, linea)
+                # Línea 1: Nombre y Cantidad
+                hDC.TextOut(x, y, f"{nombre_p} x{cant_p}")
                 y += line_height
-                current_line += 1
+                
+                # Línea 2: Precio al por mayor
+                hDC.TextOut(x + 20, y, f"P.Mayor: ${unit_p}")
+                y += line_height
+                
+                # Línea 3: Total del Producto
+                hDC.TextOut(x + 20, y, f"TOTAL:   ${tot_p}")
+                y += line_height
+                
+                current_line += 3
 
-                # Si se alcanza el límite de líneas, crear una nueva página
                 if current_line >= max_lines_per_page:
-                    hDC.EndPage()  # Finalizar la página actual
-                    hDC.StartPage()  # Iniciar una nueva página
-                    y = 2  # Reiniciar la posición Y
-                    current_line = 0  # Reiniciar el contador de líneas
+                    hDC.EndPage()
+                    hDC.StartPage()
+                    y = 10
+                    current_line = 0
 
-            # Imprimir los totales y el mensaje final
-            totales = f"""
-            -----------------------------------------------------------------------------------------------------
-            Subtotal: {subtotal_formateado}
-            Envío: {delivery_fee_formateado}
-            Total: {total_formateado}
-            Método de Pago: {payment_method}
-            -----------------------------------------------------------------------------------------------------
-            ¡Gracias por tu compra!
-            -----------------------------------------------------------------------------------------------------
-            """
-            
-            for line in totales.split("\n"):
-                hDC.TextOut(x, y, line.strip())
+            y += 5
+            hDC.TextOut(x, y, "--------------------------------")
+            y += line_height
+
+            # Totales
+            hDC.TextOut(x, y, f"SUBTOTAL:   {subtotal_formateado.rjust(18)}")
+            y += line_height
+            hDC.TextOut(x, y, f"DOMICILIO:  {delivery_fee_formateado.rjust(18)}")
+            y += line_height
+            hDC.TextOut(x, y, f"TOTAL:      {total_formateado.rjust(18)}")
+            y += line_height
+            y += 5
+            hDC.TextOut(x, y, f"METODO: {payment_method}")
+            y += line_height
+            if "/" in pago_p:
+                for lp in pago_formateado.split("\n"):
+                    hDC.TextOut(x, y, lp)
+                    y += line_height
+            else:
+                hDC.TextOut(x, y, f"PAGO: {pago_formateado}")
                 y += line_height
 
-            # Finalizar la impresión
+            y += 15
+            hDC.TextOut(x, y, "--------------------------------")
+            y += line_height
+            mensaje_gracias = "¡Gracias por su compra!"
+            text_size = hDC.GetTextExtent(mensaje_gracias)
+            hDC.TextOut(center_x - (text_size[0] // 2), y, mensaje_gracias)
+            y += line_height
+            hDC.TextOut(x, y, "--------------------------------")
+            
+            # Espacio adicional al final
+            for _ in range(10):
+                y += line_height
+                hDC.TextOut(x, y, " ")
+            hDC.TextOut(x, y, ".")
+
             hDC.EndPage()
             hDC.EndDoc()
             hDC.DeleteDC()
 
-            # Cerrar la base de datos y mostrar mensaje de éxito
+
             db.close()
             QMessageBox.information(self, "Éxito", mensaje)
+
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al generar la factura: {str(e)}")
             print(e)
