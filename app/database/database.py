@@ -9,7 +9,7 @@ app_data_dir = Path(os.getenv("APPDATA") or os.path.expanduser("~/.local/share")
 app_data_dir.mkdir(parents=True, exist_ok=True)  # Crea el directorio si no existe
 
 # Nueva ruta para la base de datos
-DATABASE_PATH = app_data_dir / "systock.db"
+DATABASE_PATH = app_data_dir / "ladynails-cali.db"
 DATABASE_URL = f"sqlite:///{DATABASE_PATH}"  # Formato correcto para SQLAlchemy
 
 # Crear el motor de conexión

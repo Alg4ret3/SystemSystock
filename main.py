@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
         app_data_dir = Path(os.getenv("APPDATA") or os.path.expanduser("~")) / "Systock"
         app_data_dir.mkdir(parents=True, exist_ok=True)  # Crea el directorio si no existe
 
-        db_path = app_data_dir / "systock.db"
+        db_path = app_data_dir / "ladynails-cali.db"
 
         if not db_path.exists():
             progress = QProgressDialog("Creando la base de datos...      ", None, 0, 0, self)
