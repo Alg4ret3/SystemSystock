@@ -313,9 +313,9 @@ class CrediFactura_View(QWidget, Ui_FacturasCredito):
         invoice_number = factura["ID_Factura"]
 
         if payment_method == "Efectivo":
-            pago = f"{factura["Monto_efectivo"]}"
+            pago = f"{factura['Monto_efectivo']}"
         elif payment_method == "Transferencia":
-            pago = f"{factura["Monto_TRANSACCION"]}"
+            pago = f"{factura['Monto_TRANSACCION']}"
         else:
             pago = f"{factura['Monto_efectivo']}/{factura['Monto_TRANSACCION']}"
 
